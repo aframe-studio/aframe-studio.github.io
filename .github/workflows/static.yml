@@ -1,0 +1,38 @@
+name: Deploy static content to Pages
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Prepare site (restore videos from stored data)
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          base64 -d assets/dossier-ambery-vanilla-selfie.mp4.b64 > _site/dossier-ambery-vanilla-selfie.mp4
+          cat assets/dot-and-key-sunscreen.mp4.b64.part1 assets/dot-and-key-sunscreen.mp4.b64.part2 | base64 -d > _site/dot-and-key-sunscreen.mp4
+          cat assets/dossier-ambery-vanilla-editorial.mp4.b64.part1 assets/dossier-ambery-vanilla-editorial.mp4.b64.part2 | base64 -d > _site/dossier-ambery-vanilla-editorial.mp4
+          ls -lh _site/
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
