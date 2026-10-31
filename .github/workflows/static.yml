@@ -1,15 +1,19 @@
-name: Deploy static content to Pages
+name: Deploy AFRAME site to Pages
+
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
+
 jobs:
   deploy:
     environment:
@@ -19,16 +23,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Prepare site (restore videos from stored data)
+      - name: Prepare site files
         run: |
           mkdir -p _site
           cp index.html _site/
-          base64 -d assets/dossier-ambery-vanilla-selfie.mp4.b64 > _site/dossier-ambery-vanilla-selfie.mp4
-          cat assets/dot-and-key-sunscreen.mp4.b64.part1 assets/dot-and-key-sunscreen.mp4.b64.part2 | base64 -d > _site/dot-and-key-sunscreen.mp4
-          cat assets/dossier-ambery-vanilla-editorial.mp4.b64.part1 assets/dossier-ambery-vanilla-editorial.mp4.b64.part2 | base64 -d > _site/dossier-ambery-vanilla-editorial.mp4
-          ls -lh _site/
+          for base in dot-and-key-sunscreen dossier-ambery-vanilla-selfie essence-one-morning-calm bean-and-bee-curl-custard; do
+            if ls assets/$base.mp4.b64.part* >/dev/null 2>&1; then
+              cat assets/$base.mp4.b64.part* | base64 -d > _site/$base.mp4
+            else
+              base64 -d assets/$base.mp4.b64 > _site/$base.mp4
+            fi
+          done
+          ls -la _site
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
