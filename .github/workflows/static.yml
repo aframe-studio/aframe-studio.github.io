@@ -26,7 +26,7 @@ jobs:
       - name: Prepare site files
         run: |
           mkdir -p _site
-          cp index.html _site/
+          cat assets/index.html.b64.part* | base64 -d > _site/index.html
           for base in dot-and-key-sunscreen dossier-ambery-vanilla-selfie essence-one-morning-calm bean-and-bee-curl-custard; do
             if ls assets/$base.mp4.b64.part* >/dev/null 2>&1; then
               cat assets/$base.mp4.b64.part* | base64 -d > _site/$base.mp4
